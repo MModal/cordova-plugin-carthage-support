@@ -4,11 +4,22 @@ require "xcodeproj"
 require "json"
 
 BUILD_PHASE_NAME = "Cordova Plugin Carthage Run Script"
+EMBED_FRAMEWORK_PHASE_NAME = "Embed Frameworks"
 
 def shell_script_phase?(build_phase)
   if build_phase.isa != "PBXShellScriptBuildPhase"
     false
   elsif build_phase.name != BUILD_PHASE_NAME
+    false
+  else
+    true
+  end
+end
+
+def embed_framework_phase?(build_phase)
+  if build_phase.isa != "PBXCopyFilesBuildPhase"
+    false
+  elsif build_phase.name != EMBED_FRAMEWORK_PHASE_NAME
     false
   else
     true
@@ -89,6 +100,40 @@ begin
           count = build_phase.files_references.count{|ref| ref.name == framework && framework_ref.path == ref.path }
           if count == 0
             build_phase.add_file_reference(framework_ref, false)
+          end
+        end
+      end
+    end
+  end
+
+  ## Embed framework phase
+  project.targets.each do |target|
+    exists_embed_phase = false
+    target.build_phases.each do |build_phase|
+      if embed_framework_phase?(build_phase)
+        exists_embed_phase = true
+      end
+    end
+    if !exists_embed_phase
+      build_phase = project.new(Xcodeproj::Project::Object::PBXCopyFilesBuildPhase)
+      build_phase.name = EMBED_FRAMEWORK_PHASE_NAME
+      build_phase.symbol_dst_subfolder_spec = :frameworks
+      target.build_phases << build_phase
+    end
+  end
+
+  project.targets.each do |target|
+    target.build_phases.each do |build_phase|
+      if embed_framework_phase?(build_phase)
+        frameworks["frameworks"].each do |framework|
+          framework_ref = project.new(Xcodeproj::Project::Object::PBXFileReference)
+          framework_ref.name = framework
+          framework_ref.path = "Carthage/Build/iOS/" + framework
+
+          count = build_phase.files_references.count{|ref| ref.name == framework && framework_ref.path == ref.path }
+          if count == 0
+            build_file = build_phase.add_file_reference(framework_ref, false)
+            build_file.settings = { 'ATTRIBUTES' => ['CodeSignOnCopy', 'RemoveHeadersOnCopy'] }
           end
         end
       end

@@ -1,6 +1,6 @@
 {
     "name": "cordova-plugin-carthage-support",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "",
     "cordova": {
         "id": "cordova-plugin-carthage-support",
@@ -10,6 +10,9 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/nrikiji/cordova-plugin-carthage-support"
+        "url": "https://github.com/MModal/cordova-plugin-carthage-support"
+    },
+    "dependencies": {
+        "xml2js": "^0.4.23"
     }
 }
