@@ -66,6 +66,7 @@ module.exports = function (context) {
     console.log("##### Update Carthage")
     console.log(cmd)
     exec(cmd, { cwd: platformPath }, (err, stdout, stderr) => {
+        fs.unlinkSync(tmpCartfilePath)
         if (err) {
             console.error(err, stderr)
             process.exit(1)
